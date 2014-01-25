@@ -5031,7 +5031,7 @@ bool Unit::HandleAuraProcOnPowerAmount(Unit* victim, uint32 /*damage*/, AuraEffe
 }
 
 //victim may be NULL
-bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggeredByAura, SpellInfo const* procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown)
+bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggeredByAura, SpellInfo const* procSpell, uint32 procFlag, uint32 procEx, WeaponAttackType attType, uint32 cooldown)
 {
     SpellInfo const* dummySpell = triggeredByAura->GetSpellInfo();
     uint32 effIndex = triggeredByAura->GetEffIndex();
@@ -6189,6 +6189,109 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                 triggered_spell_id = 63685;
                 break;
             }
+			
+			// Elemental Overload
+			if (dummySpell->SpellIconID == 2018)	//old Lightning overload - new elemental overload
+			{
+				if (!procSpell || GetTypeId() != TYPEID_PLAYER || !victim)
+					return false;
+
+				// custom cooldown processing case
+				if (cooldown && GetTypeId() == TYPEID_PLAYER && ToPlayer()->HasSpellCooldown(dummySpell->Id))
+					return false;
+
+				uint32 spellId = 0;
+				// Every Lightning Bolt and Chain Lightning spell have 75% damage and zero cost
+				switch (procSpell->Id)
+				{
+				// Lightning Bolt
+				case 403:
+					spellId = 45284;
+					break;          // Rank  1
+				case 529:
+					spellId = 45286;
+					break;          // Rank  2
+				case 548:
+					spellId = 45287;
+					break;          // Rank  3
+				case 915:
+					spellId = 45288;
+					break;          // Rank  4
+				case 943:
+					spellId = 45289;
+					break;          // Rank  5
+				case 6041:
+					spellId = 45290;
+					break;          // Rank  6
+				case 10391:
+					spellId = 45291;
+					break;          // Rank  7
+				case 10392:
+					spellId = 45292;
+					break;          // Rank  8
+				case 15207:
+					spellId = 45293;
+					break;          // Rank  9
+				case 15208:
+					spellId = 45294;
+					break;          // Rank 10
+				case 25448:
+					spellId = 45295;
+					break;          // Rank 11
+				case 25449:
+					spellId = 45296;
+					break;          // Rank 12
+				case 49237:
+					spellId = 49239;
+					break;          // Rank 13
+				case 49238:
+					spellId = 49240;
+					break;          // Rank 14
+					// Chain Lightning
+				case 421:
+					spellId = 45297;
+					break;          // Rank  1
+				case 930:
+					spellId = 45298;
+					break;          // Rank  2
+				case 2860:
+					spellId = 45299;
+					break;          // Rank  3
+				case 10605:
+					spellId = 45300;
+					break;          // Rank  4
+				case 25439:
+					spellId = 45301;
+					break;          // Rank  5
+				case 25442:
+					spellId = 45302;
+					break;          // Rank  6
+				case 49270:
+					spellId = 49268;
+					break;          // Rank  7
+				case 49271:
+					spellId = 49269;
+					break;          // Rank  8
+					//lava eruption
+				case 51505:
+					spellId = 77451;	//Florian: guessed spellID as of wowhead
+					break;
+				default:
+					TC_LOG_ERROR("spellauras","Unit::HandleDummyAuraProc: non handled spell id: %u (LO)", procSpell->Id);
+					return false;
+				}
+
+				if(!roll_chance_f( (triggeredByAura->GetAmount() / 10) ))
+					return false;
+
+				CastSpell(victim, spellId, true, castItem, triggeredByAura);
+
+				if (cooldown && GetTypeId() == TYPEID_PLAYER)
+					ToPlayer()->AddSpellCooldown(dummySpell->Id, 0, time(NULL) + cooldown);
+
+				return true;
+			}
+
             // Flametongue Weapon (Passive)
             if (dummySpell->SpellFamilyFlags[0] & 0x200000)
             {
@@ -6369,6 +6472,69 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     target = this;
                     break;
             }
+		case SPELLFAMILY_HUNTER:
+		{
+				//Wild quiver
+				if(dummySpell->Id == 76659)
+				{
+					 if (attType != RANGED_ATTACK && attType != OFF_ATTACK)
+						return false;
+					uint32 procSpellId = procSpell ? procSpell->Id : 0;
+					if ((procSpellId != 76663) && roll_chance_i(triggeredByAura->GetAmount()/10))
+					{
+						CastSpell(victim, 76663, true); // Wild Quiver on auto-shot
+						if (cooldown && GetTypeId() == TYPEID_PLAYER)
+							ToPlayer()->AddSpellCooldown(76663, 0, time(NULL) + cooldown);
+					}
+					return true;
+				}
+
+			break;
+		}
+		case SPELLFAMILY_ROGUE:
+			{
+				switch (dummySpell->Id)
+				{
+							// 76806 Main Gauche
+					case 76806:
+						{
+							if (attType != BASE_ATTACK)
+							return false;
+							uint32 procSpellId = procSpell ? procSpell->Id : 0;
+							if ((procSpellId != 86392) && roll_chance_i(triggeredByAura->GetAmount()/10))
+							{
+								CastSpell(victim, 86392, true); // Main Gauche on melee
+								if (cooldown && GetTypeId() == TYPEID_PLAYER)
+									ToPlayer()->AddSpellCooldown(86392, 0, time(NULL) + cooldown);
+							}
+							break;
+						}
+					}
+			break;
+			}
+		case SPELLFAMILY_WARRIOR:
+			{
+				switch (dummySpell->Id)
+				{
+					// 76838 Strikes of Opportunity - wrong SpellFamilyName in 4.0.6 DBC! - see SpellMgr!
+					case 76838:
+					{
+						if (attType != BASE_ATTACK && attType != OFF_ATTACK)
+							return false;
+						uint32 procSpellId = procSpell ? procSpell->Id : 0;
+						if ((procSpellId != 76858) && roll_chance_i((triggeredByAura->GetAmount() / 10)))
+						{
+							CastSpell(victim, 76858, true); // Opportunity Strike on melee attack
+							if (cooldown && GetTypeId() == TYPEID_PLAYER)
+								ToPlayer()->AddSpellCooldown(76858, 0, time(NULL) + cooldown);
+						}
+						break;
+					}
+				}
+
+
+				break;
+			}
             break;
         }
         default:
@@ -9528,6 +9694,22 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
     // Done total percent damage auras
     float DoneTotalMod = 1.0f;
 
+	//SpellAura MOD_AUTOATTACK_DAMAGE
+	if (!spellProto)
+    {
+        AuraEffectList const & autoattackDamage = GetAuraEffectsByType(SPELL_AURA_MOD_AUTOATTACK_DAMAGE);
+        for (AuraEffectList::const_iterator i = autoattackDamage.begin(); i != autoattackDamage.end(); ++i)
+        {
+            int32 amount = (*i)->GetAmount();
+			if ((*i)->GetSpellInfo()->EquippedItemClass == -1)
+                AddPct(DoneTotalMod, amount);
+            else if (!((*i)->GetSpellInfo()->AttributesEx5 & SPELL_ATTR5_SPECIAL_ITEM_CLASS_CHECK) && ((*i)->GetSpellInfo()->EquippedItemSubClassMask == 0))
+                AddPct(DoneTotalMod, amount);
+            else if (ToPlayer() && ToPlayer()->HasItemFitToSpellRequirements((*i)->GetSpellInfo()))
+                AddPct(DoneTotalMod, amount);
+        }
+    }
+
     // Some spells don't benefit from pct done mods
     if (spellProto)
         if (!(spellProto->AttributesEx6 & SPELL_ATTR6_NO_DONE_PCT_DAMAGE_MODS) && !spellProto->IsRankOf(sSpellMgr->GetSpellInfo(12162)))
@@ -12427,7 +12609,7 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* target, uint32 procFlag, u
                     case SPELL_AURA_DUMMY:
                     {
                         TC_LOG_DEBUG("spells", "ProcDamageAndSpell: casting spell id %u (triggered by %s dummy aura of spell %u)", spellInfo->Id, (isVictim?"a victim's":"an attacker's"), triggeredByAura->GetId());
-                        if (HandleDummyAuraProc(target, damage, triggeredByAura, procSpell, procFlag, procExtra, cooldown))
+                        if (HandleDummyAuraProc(target, damage, triggeredByAura, procSpell, procFlag, procExtra, attType, cooldown))
                             takeCharges = true;
                         break;
                     }
