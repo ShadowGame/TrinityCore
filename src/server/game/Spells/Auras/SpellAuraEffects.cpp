@@ -687,7 +687,7 @@ void AuraEffect::CalculateSpellMod(Unit* target)
 			case SPELLFAMILY_SHAMAN:
 				{
 					//Deep Healing
-					if(m_spellInfo->Id == 77226)
+					if(m_spellInfo->Id == 77226 && GetEffIndex() == 0)
 					{
 						int32 bonus = 0;
 						float pct = 0.0f;
@@ -716,7 +716,7 @@ void AuraEffect::CalculateSpellMod(Unit* target)
 			case SPELLFAMILY_MAGE:
 				{
 					//Frostburn
-					if(m_spellInfo->Id == 76613)
+					if(m_spellInfo->Id == 76613 && GetEffIndex() == 0)
 					{
 						int32 bonus = 0;
 						const SpellInfo * info = sSpellMgr->GetSpellInfo(76613);
@@ -737,7 +737,7 @@ void AuraEffect::CalculateSpellMod(Unit* target)
 					}
 
 					//Mana adept
-					if( m_spellInfo->Id == 76547)
+					if( m_spellInfo->Id == 76547 && GetEffIndex() == 0)
 					{
 						int32 bonus = 0;
 						if (Unit* caster = GetCaster())
