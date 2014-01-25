@@ -1058,6 +1058,74 @@ class spell_warr_vigilance_trigger : public SpellScriptLoader
         }
 };
 
+// Thunder Clap
+// Spell Id: 6343
+class spell_warr_thunderclap : public SpellScriptLoader
+{
+    public:
+        spell_warr_thunderclap() : SpellScriptLoader("spell_warr_thunderclap") { }
+
+        class spell_warr_thunderclap_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_warr_thunderclap_SpellScript);
+
+            // Lock for avoid processing the same thing multiple times when we already know the result
+            bool CheckAgain;
+            std::list<WorldObject*> targetList;
+
+            bool Load()
+            {
+                CheckAgain = true;
+                return true;
+            }
+
+            void FilterTargets(std::list<WorldObject*>& unitList)
+            {
+                targetList = unitList;
+            }
+
+            void OnTargetHit(SpellEffIndex effect)
+            {
+                if (CheckAgain) // Dont re-cast the thing on each target if its already applied
+                {
+                    // Check for Blood and Thunder
+                    if (Unit* caster = GetCaster())
+                    {
+                        if (caster->HasAura(84615) || (caster->HasAura(84614) && roll_chance_i(50))) // Blood and Thunder rank 1 & 2
+                        {
+                            if (Unit* target = GetHitUnit())
+                            {
+                                if (target->HasAura(94009)) // If the target has Rend
+                                {
+                                    CheckAgain = false;
+                                    for (std::list<WorldObject*>::iterator itr = targetList.begin(); itr != targetList.end(); ++itr)
+									{
+										if ((*itr)->GetTypeId() == TYPEID_UNIT)
+										{
+											if(Unit* curTrg = (*itr)->ToUnit()) 
+												caster->CastSpell(curTrg, 94009, true);
+										}
+									}
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            void Register() OVERRIDE
+            {
+                OnEffectHitTarget += SpellEffectFn(spell_warr_thunderclap::spell_warr_thunderclap_SpellScript::OnTargetHit, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_warr_thunderclap::spell_warr_thunderclap_SpellScript::FilterTargets, EFFECT_0, TARGET_UNIT_SRC_AREA_ENEMY);
+            }
+        };
+
+        SpellScript* GetSpellScript() const OVERRIDE
+        {
+            return new spell_warr_thunderclap_SpellScript();
+        }
+};
+
 void AddSC_warrior_spell_scripts()
 {
     new spell_warr_bloodthirst();
@@ -1085,4 +1153,5 @@ void AddSC_warrior_spell_scripts()
     new spell_warr_victorious();
     new spell_warr_vigilance();
     new spell_warr_vigilance_trigger();
+	new spell_warr_thunderclap();
 }
