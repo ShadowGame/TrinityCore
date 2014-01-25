@@ -1064,7 +1064,11 @@ void Aura::SetLoadedState(int32 maxduration, int32 duration, int32 charges, uint
 			
 			UnitList targetList;
 			m_effects[i]->GetTargetList(targetList);
-			m_effects[i]->CalculateSpellMod(*targetList.begin());
+
+			if(targetList.empty())
+				m_effects[i]->CalculateSpellMod(NULL);
+			else
+				m_effects[i]->CalculateSpellMod(*targetList.begin());
             
 			m_effects[i]->RecalculateAmount(caster);
         }

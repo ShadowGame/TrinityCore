@@ -442,7 +442,11 @@ m_canBeRecalculated(true), m_isPeriodic(false)
 	UnitList targetList;
     GetTargetList(targetList);
 
-	CalculateSpellMod(*targetList.begin());
+
+	if(targetList.empty())
+		CalculateSpellMod(NULL);	
+	else
+		CalculateSpellMod(*targetList.begin());
 
     m_amount = CalculateAmount(caster);
 
@@ -856,8 +860,11 @@ void AuraEffect::ChangeAmount(int32 newAmount, bool mark, bool onStackOrReapply)
             SetAmount(newAmount);
         UnitList targetList;
 		GetTargetList(targetList);
-		
-		CalculateSpellMod(*targetList.begin());
+
+		if(targetList.empty())
+			CalculateSpellMod(NULL);
+		else
+			CalculateSpellMod(*targetList.begin());
     }
 
     for (std::list<AuraApplication*>::const_iterator apptItr = effectApplications.begin(); apptItr != effectApplications.end(); ++apptItr)
