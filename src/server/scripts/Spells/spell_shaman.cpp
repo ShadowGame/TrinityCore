@@ -62,7 +62,8 @@ enum ShamanSpells
     SPELL_SHAMAN_TOTEM_EARTHBIND_TOTEM          = 6474,
     SPELL_SHAMAN_TOTEM_EARTHEN_POWER            = 59566,
     SPELL_SHAMAN_TOTEM_HEALING_STREAM_HEAL      = 52042,
-    SPELL_SHAMAN_TIDAL_WAVES                    = 53390
+    SPELL_SHAMAN_TIDAL_WAVES                    = 53390,
+	SHAMAN_SPELL_EARTHQUAKE_KNOCKDOWN			= 77505
 };
 
 enum ShamanSpellIcons
@@ -1165,6 +1166,87 @@ class spell_sha_tidal_waves : public SpellScriptLoader
         }
 };
 
+// 77478 - Earthquake
+class spell_sha_earthquake : public SpellScriptLoader
+{
+    public:
+        spell_sha_earthquake() : SpellScriptLoader("spell_sha_earthquake") { }
+
+        class spell_sha_earthquake_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_sha_earthquake_SpellScript);
+
+            bool Validate(SpellInfo const* /*spellInfo*/) OVERRIDE
+            {
+                if (!sSpellMgr->GetSpellInfo(SHAMAN_SPELL_EARTHQUAKE_KNOCKDOWN))
+                    return false;
+                return true;
+            }
+
+            void OnQuake()
+            {
+				int32 chance = GetSpellInfo()->Effects[EFFECT_1].CalcValue(GetCaster());
+                Unit* target = GetHitUnit();
+                if (roll_chance_i(chance))
+                GetCaster()->CastSpell(target, SHAMAN_SPELL_EARTHQUAKE_KNOCKDOWN, true);
+            }
+
+            void Register() OVERRIDE
+            {
+                OnHit += SpellHitFn(spell_sha_earthquake_SpellScript::OnQuake);
+            }
+        };
+        
+        SpellScript* GetSpellScript() const OVERRIDE
+        {
+            return new spell_sha_earthquake_SpellScript();
+        }
+};
+
+// 73920 - Healing Rain
+class spell_sha_healing_rain : public SpellScriptLoader
+{
+    public:
+        spell_sha_healing_rain() : SpellScriptLoader("spell_sha_healing_rain") { }
+
+        class spell_sha_healing_rain_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_sha_healing_rain_AuraScript);
+
+            void OnTick(AuraEffect const* aurEff)
+            {
+                targetList.clear();
+                if (DynamicObject* dynObj = GetCaster()->GetDynObject(73920))
+                {
+                    Aura::ApplicationMap applications = dynObj->GetAura()->GetApplicationMap();
+                    for (Aura::ApplicationMap::iterator itr = applications.begin(); itr != applications.end(); ++itr)
+                    {
+                        uint8 effectsToApply = itr->second->GetEffectsToApply();
+                        if (effectsToApply & (1 << 0))
+                            targetList.push_back(itr->second->GetTarget());
+                    }
+                }
+
+                for (std::list<Unit*>::const_iterator itr = targetList.begin(); itr != targetList.end(); ++itr)
+                    GetCaster()->CastSpell((*itr)->GetPositionX(), (*itr)->GetPositionY(), (*itr)->GetPositionZ(), 73921, true);
+            }
+
+            void Register() OVERRIDE
+            {
+                //DoCheckAreaTarget += AuraCheckAreaTargetFn(spell_sha_healing_rain_AuraScript::Target);
+                OnEffectPeriodic += AuraEffectPeriodicFn(spell_sha_healing_rain_AuraScript::OnTick, EFFECT_1, SPELL_AURA_PERIODIC_DUMMY);
+            }
+            
+            public:
+                std::list<Unit*> targetList;
+        };
+        
+        AuraScript* GetAuraScript() const OVERRIDE
+        {
+            return new spell_sha_healing_rain_AuraScript();
+        }
+};
+
 void AddSC_shaman_spell_scripts()
 {
     new spell_sha_ancestral_awakening();
@@ -1193,4 +1275,6 @@ void AddSC_shaman_spell_scripts()
     new spell_sha_telluric_currents();
     new spell_sha_thunderstorm();
     new spell_sha_tidal_waves();
+	new spell_sha_earthquake();
+	new spell_sha_healing_rain();
 }
