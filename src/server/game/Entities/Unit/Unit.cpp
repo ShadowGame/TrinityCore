@@ -7256,6 +7256,23 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                         CastSpell(this, 70831, true, castItem, triggeredByAura);
             break;
         }
+
+		case 26364: // Lightning shield
+        {
+            if (HasAura(55448)) // Glyph of Lightning shield
+            {
+                if (Aura * lightningShield = GetAura(324))
+                {
+                    uint8 lsCharges = lightningShield->GetCharges();
+                    if (lsCharges <= 3)
+                    {
+                        lightningShield->SetCharges(3); // Dont allow to have less than 3 charges
+                    }
+                }
+            }
+            break;
+		}
+
         // Glyph of Death's Embrace
         case 58679:
         {

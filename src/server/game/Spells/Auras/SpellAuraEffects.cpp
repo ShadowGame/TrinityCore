@@ -439,6 +439,11 @@ m_canBeRecalculated(true), m_isPeriodic(false)
 {
     CalculatePeriodic(caster, true, false);
 
+	UnitList targetList;
+    GetTargetList(targetList);
+
+	CalculateSpellMod(*targetList.begin());
+
     m_amount = CalculateAmount(caster);
 
     CalculateSpellMod();
@@ -671,10 +676,139 @@ void AuraEffect::CalculatePeriodic(Unit* caster, bool resetPeriodicTimer /*= tru
     }
 }
 
-void AuraEffect::CalculateSpellMod()
+void AuraEffect::CalculateSpellMod(Unit* target)
 {
     switch (GetAuraType())
     {
+		case SPELL_AURA_DUMMY:
+			switch (GetSpellInfo()->SpellFamilyName)
+			{
+
+			case SPELLFAMILY_SHAMAN:
+				{
+					//Deep Healing
+					if(m_spellInfo->Id == 77226)
+					{
+						int32 bonus = 0;
+						float pct = 0.0f;
+						if (target)
+						{
+							pct = target->GetHealthPct();
+							uint32 amount = GetAmount(); // 300
+							//float mastery = player->GetMasteryPoints();
+							bonus = int32((100.0f - pct) * amount / 100.0f);
+						}
+ 
+						if (!m_spellmod)
+							m_spellmod = new SpellModifier(GetBase());
+ 
+						m_spellmod->op = SPELLMOD_DAMAGE;
+ 
+						m_spellmod->type = SPELLMOD_PCT;
+						m_spellmod->spellId = 16188; // 16188 Nature's Swiftness
+						m_spellmod->mask = GetSpellInfo()->Effects[GetEffIndex()].SpellClassMask;
+						m_spellmod->charges = GetBase()->GetCharges();
+ 
+						m_spellmod->value = bonus;
+					}
+					break;
+				}
+			case SPELLFAMILY_MAGE:
+				{
+					//Frostburn
+					if(m_spellInfo->Id == 76613)
+					{
+						int32 bonus = 0;
+						const SpellInfo * info = sSpellMgr->GetSpellInfo(76613);
+						if (target && target->HasAuraState(AURA_STATE_FROZEN, info, GetCaster()))
+						{
+							bonus = GetAmount(); // 250 * mastery / 100
+						}
+ 
+						if (!m_spellmod)
+							m_spellmod = new SpellModifier(GetBase());
+ 
+						m_spellmod->op = SPELLMOD_DAMAGE;
+						m_spellmod->type = SPELLMOD_PCT;
+						m_spellmod->spellId = 12042; // 12042 Arcane Power : 685904631, 102472, 0
+						m_spellmod->mask = flag96(0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF);//GetSpellProto()->EffectSpellClassMask[aurEff->GetEffIndex()];
+						m_spellmod->charges = GetBase()->GetCharges();
+						m_spellmod->value = bonus;
+					}
+
+					//Mana adept
+					if( m_spellInfo->Id == 76547)
+					{
+						int32 bonus = 0;
+						if (Unit* caster = GetCaster())
+						{
+							if (Player* player = caster->ToPlayer())
+							{
+								uint32 maxMana = player->GetMaxPower(POWER_MANA);
+								if (!maxMana)
+									return;
+								uint32 amount = GetAmount(); // 150 * mastery / 100
+								float manaPercent = float(player->GetPower(POWER_MANA)) / float(maxMana);
+								//float mastery = player->GetMasteryPoints();
+								bonus = int32(manaPercent * ( amount));
+                    
+							}
+						}
+					
+						if (!m_spellmod)
+							m_spellmod = new SpellModifier(GetBase());
+ 
+						m_spellmod->op = SPELLMOD_DAMAGE;
+ 
+						m_spellmod->type = SPELLMOD_PCT;
+						m_spellmod->spellId = 12042; // 12042 Arcane Power : 685904631, 102472, 0
+						m_spellmod->mask = flag96(0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF);//GetSpellProto()->EffectSpellClassMask[aurEff->GetEffIndex()];
+						m_spellmod->charges = GetBase()->GetCharges();
+						m_spellmod->value = bonus;
+ 
+
+					}
+					break;
+				}
+
+			case SPELLFAMILY_PRIEST:
+				// Pain and Suffering
+				if (m_spellInfo->SpellIconID == 2874)
+				{
+					if (!m_spellmod)
+					{
+						m_spellmod = new SpellModifier(GetBase());
+						m_spellmod->op = SPELLMOD_DOT;
+						m_spellmod->type = SPELLMOD_PCT;
+						m_spellmod->spellId = GetId();
+						m_spellmod->mask[1] = 0x00002000;
+					}
+					m_spellmod->value = GetAmount();
+				}
+				break;
+			case SPELLFAMILY_DRUID:
+				switch (GetId())
+				{
+				case 34246:          // Idol of the Emerald Queen
+				case 60779:          // Idol of Lush Moss
+				{
+					if (!m_spellmod)
+					{
+						m_spellmod = new SpellModifier(GetBase());
+						m_spellmod->op = SPELLMOD_DOT;
+						m_spellmod->type = SPELLMOD_FLAT;
+						m_spellmod->spellId = GetId();
+						m_spellmod->mask[1] = 0x0010;
+					}
+					m_spellmod->value = GetAmount() / 7;
+				}
+					break;
+				}
+				break;
+			default:
+				break;
+			}
+
         case SPELL_AURA_ADD_FLAT_MODIFIER:
         case SPELL_AURA_ADD_PCT_MODIFIER:
             if (!m_spellmod)
@@ -720,7 +854,10 @@ void AuraEffect::ChangeAmount(int32 newAmount, bool mark, bool onStackOrReapply)
             m_amount = newAmount;
         else
             SetAmount(newAmount);
-        CalculateSpellMod();
+        UnitList targetList;
+		GetTargetList(targetList);
+		
+		CalculateSpellMod(*targetList.begin());
     }
 
     for (std::list<AuraApplication*>::const_iterator apptItr = effectApplications.begin(); apptItr != effectApplications.end(); ++apptItr)
