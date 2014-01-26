@@ -11515,6 +11515,17 @@ bool Unit::HandleStatModifier(UnitMods unitMod, UnitModifierType modifierType, f
     {
         case BASE_VALUE:
         case TOTAL_VALUE:
+			switch(unitMod)
+			{
+				case UNIT_MOD_STAT_INTELLECT:
+					{
+						int32 mod = GetTotalAuraModifier(SPELL_AURA_MOD_SPELL_POWER_PCT);
+						if(mod > 0)
+							amount *= 1.0 + mod / 100.0f;
+					}
+					break;
+			}
+
             m_auraModifiersGroup[unitMod][modifierType] += apply ? amount : -amount;
             break;
         case BASE_PCT:
