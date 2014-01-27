@@ -1,86 +1,114 @@
 /*
- * Copyright (C) 2008-2014 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2006-2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+ * Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
+ * Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * Copyright (C) 2006 - 2013 ScriptDev2 <http://www.scriptdev2.com/>
  *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Copyright (C) 2010 - 2013 ProjectSkyfire <http://www.projectskyfire.org/>
+ *
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include "ObjectMgr.h"
-#include "ScriptMgr.h"
-#include "ScriptedCreature.h"
+/* ScriptData
+SDName: Boss_Hazzarah
+SD%Complete: 100
+SDComment:
+SDCategory: Zul'Gurub
+EndScriptData */
+
+#include "ScriptPCH.h"
 #include "zulgurub.h"
 
-enum Yells
-{
-};
-
-enum Spells
-{
-};
-
-enum Events
-{
-};
+#define SPELL_MANABURN         26046
+#define SPELL_SLEEP            24664
 
 class boss_hazzarah : public CreatureScript
 {
     public:
-        boss_hazzarah() : CreatureScript("boss_hazzarah") { }
 
-        struct boss_hazzarahAI : public BossAI
+        boss_hazzarah()
+            : CreatureScript("boss_hazzarah")
         {
-            boss_hazzarahAI(Creature* creature) : BossAI(creature, DATA_HAZZARAH)
+        }
+
+        struct boss_hazzarahAI : public ScriptedAI
+        {
+            boss_hazzarahAI(Creature *c) : ScriptedAI(c) {}
+
+            uint32 ManaBurn_Timer;
+            uint32 Sleep_Timer;
+            uint32 Illusions_Timer;
+
+            void Reset()
+            {
+                ManaBurn_Timer = 4000 + rand()%6000;
+                Sleep_Timer = 10000 + rand()%8000;
+                Illusions_Timer = 10000 + rand()%8000;
+            }
+
+            void EnterCombat(Unit * /*who*/)
             {
             }
 
-            void Reset() OVERRIDE
-            {
-            }
-
-            void EnterCombat(Unit* /*who*/) OVERRIDE
-            {
-            }
-
-            void JustDied(Unit* /*killer*/) OVERRIDE
-            {
-            }
-
-            void UpdateAI(uint32 diff) OVERRIDE
+            void UpdateAI(const uint32 diff)
             {
                 if (!UpdateVictim())
                     return;
 
-                events.Update(diff);
-
-                if (me->HasUnitState(UNIT_STATE_CASTING))
-                    return;
-                /*
-                while (uint32 eventId = events.ExecuteEvent())
+                //ManaBurn_Timer
+                if (ManaBurn_Timer <= diff)
                 {
-                    switch (eventId)
+                    DoCast(me->getVictim(), SPELL_MANABURN);
+                    ManaBurn_Timer = 8000 + rand()%8000;
+                } else ManaBurn_Timer -= diff;
+
+                //Sleep_Timer
+                if (Sleep_Timer <= diff)
+                {
+                    DoCast(me->getVictim(), SPELL_SLEEP);
+                    Sleep_Timer = 12000 + rand()%8000;
+                } else Sleep_Timer -= diff;
+
+                //Illusions_Timer
+                if (Illusions_Timer <= diff)
+                {
+                    //We will summon 3 illusions that will spawn on a random gamer and attack this gamer
+                    //We will just use one model for the beginning
+                    Unit *pTarget = NULL;
+                    for (uint8 i = 0; i < 3; ++i)
                     {
-                        default:
-                            break;
+                        pTarget = SelectUnit(SELECT_TARGET_RANDOM, 0);
+                        if (!pTarget)
+                            return;
+
+                        Creature *Illusion = me->SummonCreature(15163, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), 0, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 30000);
+                        if (Illusion)
+                            Illusion->AI()->AttackStart(pTarget);
                     }
-                }
-                */
+
+                    Illusions_Timer = 15000 + rand()%10000;
+                } else Illusions_Timer -= diff;
 
                 DoMeleeAttackIfReady();
             }
         };
 
-        CreatureAI* GetAI(Creature* creature) const OVERRIDE
+        CreatureAI* GetAI(Creature* creature) const
         {
             return new boss_hazzarahAI(creature);
         }
