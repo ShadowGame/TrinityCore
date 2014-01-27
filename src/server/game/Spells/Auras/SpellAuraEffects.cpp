@@ -683,6 +683,7 @@ void AuraEffect::CalculateSpellMod(Unit* target)
     switch (GetAuraType())
     {
 		case SPELL_AURA_DUMMY:
+		{
 			switch (GetSpellInfo()->SpellFamilyName)
 			{
 
@@ -810,12 +811,23 @@ void AuraEffect::CalculateSpellMod(Unit* target)
 			default:
 				break;
 			}
+		}
 
         case SPELL_AURA_ADD_FLAT_MODIFIER:
         case SPELL_AURA_ADD_PCT_MODIFIER:
             if (!m_spellmod)
             {
                 m_spellmod = new SpellModifier(GetBase());
+
+				if(m_spellmod->op > MAX_SPELLMOD)
+				{
+					TC_LOG_ERROR("spellauras", "spellmod->op > MAX_SPELLMOD");
+					TC_LOG_ERROR("spellauras", "SpellID: %u, SpellModOp: %d", GetBase()->GetSpellInfo()->Id,(int) m_spellmod->op);
+					delete m_spellmod;
+					m_spellmod = NULL;
+					return;
+				}
+
                 m_spellmod->op = SpellModOp(GetMiscValue());
 
                 m_spellmod->type = SpellModType(uint32(GetAuraType())); // SpellModType value == spell aura types
