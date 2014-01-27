@@ -811,6 +811,8 @@ void AuraEffect::CalculateSpellMod(Unit* target)
 			default:
 				break;
 			}
+
+			break;
 		}
 
         case SPELL_AURA_ADD_FLAT_MODIFIER:
@@ -819,7 +821,7 @@ void AuraEffect::CalculateSpellMod(Unit* target)
             {
                 m_spellmod = new SpellModifier(GetBase());
 
-				if(m_spellmod->op > MAX_SPELLMOD)
+				if(m_spellmod->op >= ( MAX_SPELLMOD -1 ))
 				{
 					TC_LOG_ERROR("spellauras", "spellmod->op > MAX_SPELLMOD");
 					TC_LOG_ERROR("spellauras", "SpellID: %u, SpellModOp: %d", GetBase()->GetSpellInfo()->Id,(int) m_spellmod->op);
