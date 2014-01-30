@@ -442,13 +442,12 @@ m_canBeRecalculated(true), m_isPeriodic(false)
 	UnitList targetList;
     GetTargetList(targetList);
 
+	m_amount = CalculateAmount(caster);
 
 	if(targetList.empty())
 		CalculateSpellMod(NULL);	
 	else
 		CalculateSpellMod(*targetList.begin());
-
-    m_amount = CalculateAmount(caster);
 }
 
 AuraEffect::~AuraEffect()
@@ -820,16 +819,6 @@ void AuraEffect::CalculateSpellMod(Unit* target)
             if (!m_spellmod)
             {
                 m_spellmod = new SpellModifier(GetBase());
-
-				if(m_spellmod->op >= ( MAX_SPELLMOD -1 ))
-				{
-					TC_LOG_ERROR("spellauras", "spellmod->op > MAX_SPELLMOD");
-					TC_LOG_ERROR("spellauras", "SpellID: %u, SpellModOp: %d", GetBase()->GetSpellInfo()->Id,(int) m_spellmod->op);
-					delete m_spellmod;
-					m_spellmod = NULL;
-					return;
-				}
-
                 m_spellmod->op = SpellModOp(GetMiscValue());
 
                 m_spellmod->type = SpellModType(uint32(GetAuraType())); // SpellModType value == spell aura types
