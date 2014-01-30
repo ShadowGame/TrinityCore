@@ -3117,6 +3117,10 @@ void SpellMgr::LoadSpellInfoCorrections()
 
         switch (spellInfo->Id)
         {
+			//Strikes of Opportunity - wrong SpellFamilyName
+			case 76838:
+				spellInfo->SpellFamilyName = SPELLFAMILY_WARRIOR;
+				break;
             case 42730: // Woe Strike
                 spellInfo->Effects[EFFECT_1].TriggerSpell = 42739;
                 break;
