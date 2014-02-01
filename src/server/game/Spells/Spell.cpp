@@ -4770,6 +4770,11 @@ void Spell::HandleHolyPower(Player* caster)
     if (!m_powerCost || !modOwner)
         return;
 
+	//Hackfix for Eternal Glory
+	if(GetSpellInfo()->Id == 85673 && ( caster->HasAura(87164) || caster->HasAura(87163) ))
+		if(roll_chance_i(30))
+			m_powerCost = 0;
+
     if (uint64 targetGUID = m_targets.GetUnitTargetGUID())
     {
         for (std::list<TargetInfo>::iterator ihit = m_UniqueTargetInfo.begin(); ihit != m_UniqueTargetInfo.end(); ++ihit)
