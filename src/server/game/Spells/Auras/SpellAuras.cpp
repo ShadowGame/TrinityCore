@@ -1306,6 +1306,27 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                     }
                 }
                 break;
+			case SPELLFAMILY_PALADIN:
+				//speed of light
+				if (GetId() == 498)
+				{
+					if (target->HasAura(85495))          // r1
+					{
+						target->CastSpell(target, 85497, true);
+						target->SetSpeed(MOVE_RUN, 1.2f, true);
+					}
+					if (target->HasAura(85498))          // r2
+					{
+						target->CastSpell(target, 85497, true);
+						target->SetSpeed(MOVE_RUN, 1.4f, true);
+					}
+					if (target->HasAura(85499))          // r3
+					{
+						target->CastSpell(target, 85497, true);
+						target->SetSpeed(MOVE_RUN, 1.6f, true);
+					}
+				}
+				break;
             case SPELLFAMILY_ROGUE:
                 // Sprint (skip non player cast spells by category)
                 if (GetSpellInfo()->SpellFamilyFlags[0] & 0x40 && GetSpellInfo()->GetCategory() == 44)

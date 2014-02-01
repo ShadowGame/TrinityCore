@@ -11524,6 +11524,8 @@ bool Unit::HandleStatModifier(UnitMods unitMod, UnitModifierType modifierType, f
 							amount *= 1.0 + mod / 100.0f;
 					}
 					break;
+				default:
+					break;
 			}
 
             m_auraModifiersGroup[unitMod][modifierType] += apply ? amount : -amount;
