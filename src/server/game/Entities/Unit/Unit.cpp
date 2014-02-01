@@ -7077,6 +7077,25 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+		// Sacred Shield
+		case 85285:
+		{
+			if (!HealthBelowPctDamaged(30, damage))
+				return false;
+
+			int32 ap = int32(GetTotalAttackPowerValue(BASE_ATTACK) * 0.9f);
+			basepoints0 = int32(CalculatePct(ap, 280));
+			break;
+		}
+		
+		// Improved Hamstring
+		case 12289:
+		case 12668:
+		{
+			if (!victim->HasAura(1715))
+				return false;
+			break;
+		}
         // Deep Wounds
         case 12834:
         case 12849:
