@@ -63,7 +63,11 @@ enum PaladinSpells
     SPELL_PALADIN_SWIFT_RETRIBUTION_R1           = 53379,
 	SPELL_PALADIN_SEAL_OF_INSIGHT                = 20165,
 	SPELL_PALADIN_SEAL_OF_JUSTICE                = 20164,
-	SPELL_PALADIN_JUDGEMENT_DAMAGE               = 54158
+	SPELL_PALADIN_JUDGEMENT_DAMAGE               = 54158,
+	SPELL_PALADIN_GUARDIAN_ANCIENT_KINGS		 = 86150,
+	SPELL_PALADIN_RETRI_GUARDIAN                 = 86698,
+    SPELL_PALADIN_HOLY_GUARDIAN                  = 86669,
+    SPELL_PALADIN_PROT_GUARDIAN                  = 86659
 };
 
 enum MiscSpells
@@ -1138,6 +1142,67 @@ class spell_pal_judgement : public SpellScriptLoader
         }
 };
 
+// -86150 - Guardian of Ancient Kings
+// Fix: Summon guardian, need to implement other spells yet like Ancient Power and Ancient Fury
+// 4.3.4
+class spell_pal_guardian_ancient_kings : public SpellScriptLoader
+{
+public:
+    spell_pal_guardian_ancient_kings() : SpellScriptLoader("spell_pal_guardian_ancient_kings") { }
+
+    class spell_pal_guardian_ancient_kings_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_pal_guardian_ancient_kings_SpellScript)
+
+        bool Load()
+        {
+            if (GetCaster()->GetTypeId() != TYPEID_PLAYER)
+                return false;
+            return true;
+        }
+
+        bool Validate (SpellInfo const* /*spellEntry*/)
+        {
+            if (!sSpellMgr->GetSpellInfo(SPELL_PALADIN_GUARDIAN_ANCIENT_KINGS))
+                return false;
+
+            return true;
+        }
+
+        void HandleDummy(SpellEffIndex /*effIndex*/)
+        {
+            if (Unit* caster = GetCaster())
+            {
+                if (caster->ToPlayer()->HasSpell(20473)) // Holy Shock
+                {
+                    caster->CastSpell(caster, SPELL_PALADIN_HOLY_GUARDIAN, false);
+                    return;
+                }
+                if (caster->ToPlayer()->HasSpell(85256)) // Templar's Verdict
+                {
+                    caster->CastSpell(caster, SPELL_PALADIN_RETRI_GUARDIAN, false);
+                    return;
+                }
+                if (caster->ToPlayer()->HasSpell(31935)) // Avenger's shield
+                {
+                    caster->CastSpell(caster, SPELL_PALADIN_PROT_GUARDIAN, false);
+                    return;
+                }
+            }
+        }
+
+        void Register()
+        {
+            OnEffectLaunch += SpellEffectFn(spell_pal_guardian_ancient_kings_SpellScript::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+        }
+    };
+
+    SpellScript* GetSpellScript() const
+    {
+        return new spell_pal_guardian_ancient_kings_SpellScript();
+    }
+};
+
 void AddSC_paladin_spell_scripts()
 {
     //new spell_pal_ardent_defender();
@@ -1163,4 +1228,5 @@ void AddSC_paladin_spell_scripts()
     new spell_pal_templar_s_verdict();
     new spell_pal_seal_of_righteousness();
 	new spell_pal_judgement();
+	new spell_pal_guardian_ancient_kings();
 }
