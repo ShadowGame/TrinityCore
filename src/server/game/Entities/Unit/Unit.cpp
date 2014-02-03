@@ -7105,6 +7105,11 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
 		{
 			if (!victim->HasAura(1715))
 				return false;
+
+				if(auraSpellInfo->Id == 12289)
+					cooldown = 60;
+				else if(auraSpellInfo->Id == 12668)
+					cooldown = 30;
 			break;
 		}
         // Deep Wounds
