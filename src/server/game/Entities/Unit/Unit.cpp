@@ -5775,6 +5775,17 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     target = this;
                     break;
                 }
+				case 87168:
+				case 87172:
+				{
+					if (roll_chance_f(triggerAmount) && !this->IsWithinDistInMap(victim, 15.0f))
+					{
+						target = this;
+						triggered_spell_id = 87173;
+						break;
+					}
+				}
+
                 // Holy Power (Redemption Armor set)
                 case 28789:
                 {
