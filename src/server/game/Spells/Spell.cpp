@@ -4769,11 +4769,16 @@ void Spell::HandleHolyPower(Player* caster)
 
     if (!m_powerCost || !modOwner)
         return;
+	
+	TC_LOG_ERROR("spells", "gets called");
 
-	//Hackfix for Eternal Glory
-	if(GetSpellInfo()->Id == 85673 && ( caster->HasAura(87164) || caster->HasAura(87163) ))
-		if(roll_chance_i(30))
-			m_powerCost = 0;
+	if(isWithoutPowerCost(caster))
+	{
+		TC_LOG_ERROR("spells", "true2");
+		return;
+	}
+	else
+		TC_LOG_ERROR("spells", "false");
 
     if (uint64 targetGUID = m_targets.GetUnitTargetGUID())
     {
@@ -7389,6 +7394,23 @@ void Spell::CancelGlobalCooldown()
         m_caster->GetCharmInfo()->GetGlobalCooldownMgr().CancelGlobalCooldown(m_spellInfo);
     else if (m_caster->GetTypeId() == TYPEID_PLAYER)
         m_caster->ToPlayer()->GetGlobalCooldownMgr().CancelGlobalCooldown(m_spellInfo);
+}
+
+bool Spell::isWithoutPowerCost(Unit* caster)
+{
+	//Eternal Glory
+	if(GetSpellInfo()->Id == 85673 && ( caster->HasAura(87164) || caster->HasAura(87163) ))
+		if(roll_chance_i(30))
+			return true;
+
+	//Zealotry
+	if(GetSpellInfo()->Id == 85696)
+	{
+		TC_LOG_ERROR("spells", "true1");
+		return true;
+	}
+
+	return false;
 }
 
 namespace Trinity

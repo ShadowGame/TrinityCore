@@ -452,6 +452,7 @@ class Spell
         void HandleHolyPower(Player* caster);
         void HandleEffects(Unit* pUnitTarget, Item* pItemTarget, GameObject* pGOTarget, uint32 i, SpellEffectHandleMode mode);
         void HandleThreatSpells();
+		bool isWithoutPowerCost(Unit* caster);
 
         SpellInfo const* const m_spellInfo;
         Item* m_CastItem;
