@@ -6500,6 +6500,39 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
 					return true;
 				}
 
+				// Thrill of the Hunt
+				if (dummySpell->SpellIconID == 2236)
+				{
+					if (!procSpell)
+						return false;
+
+					Spell * spell = ToPlayer()->m_spellModTakingSpell;
+
+					// Disable charge drop because of Lock and Load
+					ToPlayer()->SetSpellModTakingSpell(spell, false);
+
+					// Explosive Shot
+					if (procSpell->SpellFamilyFlags[2] & 0x200)
+					{
+						if (!victim)
+							return false;
+						if (AuraEffect const* pEff = victim->GetAuraEffect(SPELL_AURA_PERIODIC_DUMMY, SPELLFAMILY_HUNTER, 0x0, 0x80000000, 0x0, GetGUID()))
+							basepoints0 = pEff->GetSpellInfo()->CalcPowerCost(this, SpellSchoolMask(pEff->GetSpellInfo()->SchoolMask)) * 4 / 10 / 3;
+ 
+					}
+					else
+						basepoints0 = procSpell->CalcPowerCost(this, SpellSchoolMask(procSpell->SchoolMask)) * 4 / 10;
+
+					ToPlayer()->SetSpellModTakingSpell(spell, true);
+
+					if (basepoints0 <= 0)
+						return false;
+
+					target = this;
+					triggered_spell_id = 34720;
+					break;
+				}
+
 			break;
 		}
 		case SPELLFAMILY_ROGUE:

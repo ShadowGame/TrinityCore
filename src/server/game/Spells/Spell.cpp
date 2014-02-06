@@ -4769,16 +4769,9 @@ void Spell::HandleHolyPower(Player* caster)
 
     if (!m_powerCost || !modOwner)
         return;
-	
-	TC_LOG_ERROR("spells", "gets called");
 
 	if(isWithoutPowerCost(caster))
-	{
-		TC_LOG_ERROR("spells", "true2");
 		return;
-	}
-	else
-		TC_LOG_ERROR("spells", "false");
 
     if (uint64 targetGUID = m_targets.GetUnitTargetGUID())
     {
@@ -7405,10 +7398,7 @@ bool Spell::isWithoutPowerCost(Unit* caster)
 
 	//Zealotry
 	if(GetSpellInfo()->Id == 85696)
-	{
-		TC_LOG_ERROR("spells", "true1");
 		return true;
-	}
 
 	return false;
 }
