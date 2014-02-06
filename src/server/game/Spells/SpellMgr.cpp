@@ -3060,6 +3060,10 @@ void SpellMgr::LoadSpellInfoCustomAttributes()
             case 72293: // Mark of the Fallen Champion (Deathbringer Saurfang)
                 spellInfo->AttributesCu |= SPELL_ATTR0_CU_NEGATIVE_EFF0;
                 break;
+			case 24131:          // Wyvern Sting
+            // something wrong and it applied as positive buff
+				spellInfo->AttributesCu |= SPELL_ATTR0_CU_NEGATIVE_EFF0;
+			break;
             default:
                 break;
         }
