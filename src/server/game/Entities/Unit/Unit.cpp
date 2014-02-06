@@ -6510,6 +6510,21 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
 					break;
 				}
 
+				 // Sic 'Em Rank 1
+				if (dummySpell->Id == 53340)
+				{
+					triggered_spell_id = 83359;
+					target = this;
+					break;
+				}
+				// Sic 'Em Rank 2
+				if (dummySpell->Id == 83356)
+				{
+					triggered_spell_id = 89388;
+					target = this;
+					break;
+				}
+
 				// Thrill of the Hunt
 				if (dummySpell->SpellIconID == 2236)
 				{
