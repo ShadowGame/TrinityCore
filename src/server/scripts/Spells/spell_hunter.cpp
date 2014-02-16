@@ -1025,6 +1025,58 @@ class spell_hun_tnt : public SpellScriptLoader
         }
 };
 
+//82692 Focus Fire
+class spell_hun_focus_fire: public SpellScriptLoader
+{
+public:
+    spell_hun_focus_fire () : SpellScriptLoader("spell_hun_focus_fire") { }
+
+    class spell_hun_focus_fire_SpellScript: public SpellScript
+    {
+        PrepareSpellScript(spell_hun_focus_fire_SpellScript)
+
+        SpellCastResult CheckCast ()
+        {
+            Unit* caster = GetCaster();
+            Pet* pet = caster->ToPlayer()->GetPet();
+
+            if (!pet || pet->isDead())
+                return SPELL_FAILED_NO_PET;
+
+            if (!pet->GetAura(19615))
+                return SPELL_FAILED_NO_CHARGES_REMAIN;
+
+            return SPELL_CAST_OK;
+        }
+
+        void HandleScriptEffect (SpellEffIndex /*effIndex*/)
+        {
+            Unit* caster = GetCaster();
+            Pet* pet = GetCaster()->ToPlayer()->GetPet();
+
+            if (Aura* aur = pet->GetAura(19615))
+            {
+                uint8 aurCharges = aur->GetStackAmount();
+                caster->GetAura(82692)->SetStackAmount(aurCharges);
+                pet->RemoveAurasDueToSpell(19615);
+            }
+            int32 bp = GetEffectValue();
+            caster->CastCustomSpell(pet, 83468, &bp, NULL, NULL, true, NULL, NULL, caster->GetGUID());
+        }
+
+        void Register ()
+        {
+            OnCheckCast += SpellCheckCastFn(spell_hun_focus_fire_SpellScript::CheckCast);
+			OnEffectLaunch += SpellEffectFn(spell_hun_focus_fire_SpellScript::HandleScriptEffect, EFFECT_1, SPELL_EFFECT_APPLY_AURA);
+        }
+    };
+
+    SpellScript* GetSpellScript () const
+    {
+        return new spell_hun_focus_fire_SpellScript();
+    }
+};
+
 void AddSC_hunter_spell_scripts()
 {
     new spell_hun_chimera_shot();
@@ -1050,4 +1102,5 @@ void AddSC_hunter_spell_scripts()
     new spell_hun_target_only_pet_and_owner();
     new spell_hun_thrill_of_the_hunt();
     new spell_hun_tnt();
+	new spell_hun_focus_fire();
 }
