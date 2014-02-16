@@ -4642,8 +4642,16 @@ void Spell::EffectLeapBack(SpellEffIndex effIndex)
 
     float speedxy = float(m_spellInfo->Effects[effIndex].MiscValue)/10;
     float speedz = float(damage/10);
-    //1891: Disengage
+    
+	//1891: Disengage
     m_caster->JumpTo(speedxy, speedz, m_spellInfo->SpellIconID != 1891);
+	
+	// Posthaste
+	if (AuraEffect *dummy = m_caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_HUNTER, 5094, 1))
+	{
+		int32 basepoints0 = dummy->GetAmount();
+		m_caster->CastCustomSpell(m_caster, 83559, &basepoints0, NULL, NULL, true);
+	}
 }
 
 void Spell::EffectQuestClear(SpellEffIndex effIndex)
