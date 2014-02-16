@@ -3064,6 +3064,10 @@ void SpellMgr::LoadSpellInfoCustomAttributes()
             // something wrong and it applied as positive buff
 				spellInfo->AttributesCu |= SPELL_ATTR0_CU_NEGATIVE_EFF0;
 			break;
+			case 82898:          // Crouching Tiger, Hidden Chimera (Rank 1)
+			case 82899:          // Crouching Tiger, Hidden Chimera (Rank 2)
+            spellInfo->Effects[0].ApplyAuraName = SPELL_AURA_PROC_TRIGGER_SPELL;
+            break;
             default:
                 break;
         }

@@ -7024,6 +7024,58 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                     target = this;
                     break;
                 }
+
+				if (auraSpellInfo->SpellIconID == 4752) // Crouching Tiger, Hidden Chimera
+                {
+                    if (Player* plr = ToPlayer())
+                    {
+                        if (cooldown && plr->HasSpellCooldown(auraSpellInfo->Id))
+                            return false;
+
+                        if (plr->HasSpellCooldown(781)) // Disengage 781
+                        {
+							int32 baseValue0 = auraSpellInfo->Effects[0].BasePoints  / IN_MILLISECONDS;
+                            int32 disengageCD = plr->GetSpellCooldownDelay(781);
+
+                            if (disengageCD < baseValue0)
+                                disengageCD = 0;
+                            else
+                                disengageCD -= baseValue0;
+
+                            plr->AddSpellCooldown(781, 0, time(NULL) + disengageCD);
+
+                            WorldPacket data(SMSG_MODIFY_COOLDOWN, 4+8+4);
+                            data << uint32(781);                            // Spell ID
+                            data << uint64(GetGUID());                      // Player GUID
+                            data << int32(-baseValue0 * IN_MILLISECONDS);   // Cooldown mod in milliseconds
+                            plr->GetSession()->SendPacket(&data);
+                        }
+
+                        if (plr->HasSpellCooldown(19263)) // Deterrence 19263
+                        {
+							int32 baseValue1 = auraSpellInfo->Effects[1].BasePoints  / IN_MILLISECONDS;
+                            int32 deterrenceCD = plr->GetSpellCooldownDelay(19263);
+
+                            if (deterrenceCD < baseValue1)
+                                deterrenceCD = 0;
+                            else
+                                deterrenceCD -= baseValue1;
+
+                            plr->AddSpellCooldown(19263, 0, time(NULL) + deterrenceCD);
+
+                            WorldPacket data(SMSG_MODIFY_COOLDOWN, 4+8+4);
+                            data << uint32(19263);                          // Spell ID
+                            data << uint64(GetGUID());                      // Player GUID
+                            data << int32(-baseValue1 * IN_MILLISECONDS);   // Cooldown mod in milliseconds
+                        }
+
+                        if (cooldown)
+                            plr->AddSpellCooldown(auraSpellInfo->Id, 0, time(NULL) + cooldown);
+
+                        return true;
+                    }
+                }
+
                 break;
             }
             case SPELLFAMILY_PALADIN:
