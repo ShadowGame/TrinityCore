@@ -5983,6 +5983,13 @@ void AuraEffect::HandlePeriodicDamageAurasTick(Unit* target, Unit* caster) const
             if (caster->GetTypeId() == TYPEID_PLAYER && caster->ToPlayer()->isHonorOrXPTarget(target))
                 caster->CastSpell(caster, 95810, true, 0, this);
         }
+
+		//Garrote
+		if(GetSpellInfo()->Id == 703)
+		{
+			damage = (damage + caster->GetTotalAttackPowerValue(BASE_ATTACK) *0.07);
+		}
+
         if (GetSpellInfo()->SpellFamilyName == SPELLFAMILY_GENERIC)
         {
             switch (GetId())
