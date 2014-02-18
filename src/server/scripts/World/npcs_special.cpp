@@ -2346,6 +2346,71 @@ public:
     };
 };
 
+/*######
+ # npc_shadowfiend
+ ######*/
+
+#define MANA_LEECH                        28305
+#define GLYPH_OF_SHADOWFIEND_MANA         58227
+#define GLYPH_OF_SHADOWFIEND              58228
+
+class npc_shadowfiend: public CreatureScript
+{
+public:
+    npc_shadowfiend () :
+            CreatureScript("npc_shadowfiend")
+    {
+    }
+
+    struct npc_shadowfiendAI: public ScriptedAI
+    {
+        npc_shadowfiendAI (Creature* pCreature) :
+                ScriptedAI(pCreature)
+        {
+        }
+
+        void Reset ()
+        {
+            if (me->IsSummon())
+                if (Unit* pOwner = me->ToTempSummon()->GetSummoner())
+                    if (Unit* pet = pOwner->GetGuardianPet())
+                        pet->CastSpell(pet, MANA_LEECH, true);
+        }
+
+        void DamageTaken (Unit* /*pKiller*/, uint32 &damage)
+        {
+            if (me->IsSummon())
+                if (Unit* pOwner = me->ToTempSummon()->GetSummoner())
+                {
+                    if (pOwner->HasAura(GLYPH_OF_SHADOWFIEND))
+                        if (damage >= me->GetHealth())
+                            pOwner->CastSpell(pOwner, GLYPH_OF_SHADOWFIEND_MANA, true);
+                }
+        }
+
+		void DamageDealt (Unit* /*victim*/, uint32& /*damage*/, DamageEffectType /*damageType*/) 
+		{
+			if(me->IsSummon())
+			{
+				if (Unit* pOwner = me->ToTempSummon()->GetSummoner())
+                {
+					pOwner->ModifyPowerPct(POWER_MANA, 3);
+                }
+			}
+		}
+
+        void UpdateAI (const uint32 /*diff*/)
+        {
+            DoMeleeAttackIfReady();
+        }
+    };
+
+    CreatureAI *GetAI (Creature *creature) const
+    {
+        return new npc_shadowfiendAI(creature);
+    }
+};
+
 void AddSC_npcs_special()
 {
     new npc_air_force_bots();
@@ -2368,4 +2433,5 @@ void AddSC_npcs_special()
     new npc_experience();
     new npc_firework();
     new npc_spring_rabbit();
+	new npc_shadowfiend();
 }
