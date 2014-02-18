@@ -5566,6 +5566,17 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                     target = this;
                     break;
                 }
+
+				// Atonement
+				case 14523:
+				case 81749:
+				{
+					basepoints0 = int32(CalculatePct(damage, triggerAmount));
+					triggered_spell_id = 81751;
+					target = this;
+					break;
+				}
+
                 // Oracle Healing Bonus ("Garments of the Oracle" set)
                 case 26169:
                 {
