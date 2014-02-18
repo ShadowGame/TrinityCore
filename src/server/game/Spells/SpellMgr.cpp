@@ -3125,6 +3125,9 @@ void SpellMgr::LoadSpellInfoCorrections()
 
         switch (spellInfo->Id)
         {
+			case 87426:          // Summon Shadowy Apparition
+				spellInfo->Effects[0].BasePoints = 1;
+			break;
 			//Strikes of Opportunity - wrong SpellFamilyName
 			case 76838:
 				spellInfo->SpellFamilyName = SPELLFAMILY_WARRIOR;
