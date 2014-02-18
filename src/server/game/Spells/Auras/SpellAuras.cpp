@@ -1333,7 +1333,16 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                     // in official maybe there is only one icon?
                     if (target->HasAura(58039)) // Glyph of Blurred Speed
                         target->CastSpell(target, 61922, true); // Sprint (waterwalk)
-                break;
+                
+				else if (GetId() == 6770)          // On-sap removal - blackjack talent
+				{
+					if (caster->HasAura(79125))          // rank 2
+						caster->CastSpell(target, 79126, true);
+					else if (caster->HasAura(79123))          // rank 1
+						caster->CastSpell(target, 79124, true);
+				}
+				
+				break;
         }
     }
     // mods at aura remove
