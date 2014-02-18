@@ -8868,6 +8868,45 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                 DoneTotal += (*i)->GetAmount();
                 break;
             }
+
+			    // Tundra Stalker
+            // Merciless Combat
+        case 7277:
+        {
+            // Merciless Combat
+            if ((*i)->GetSpellInfo()->SpellIconID == 2656)
+            {
+                if (!victim->HealthAbovePct(35))
+                    DoneTotalMod *= (100.0f + (*i)->GetAmount()) / 100.0f;
+            }
+            // Tundra Stalker
+            else
+            {
+                // Frost Fever (target debuff)
+                if (victim->HasAura(55095))
+                    DoneTotalMod *= ((*i)->GetAmount() + 100.0f) / 100.0f;
+                break;
+            }
+            break;
+        }
+            // Rage of Rivendare
+        case 7293:
+        {
+            if (victim->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_DEATHKNIGHT, 0, 0x02000000, 0))
+            {
+                if (SpellChainNode const *chain = sSpellMgr->GetSpellChainNode((*i)->GetId()))
+                    DoneTotalMod *= (chain->rank * 2.0f + 100.0f) / 100.0f;
+            }
+            break;
+        }
+            // Twisted Faith
+        case 7377:
+        {
+            if (victim->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_PRIEST, 0x8000, 0, 0, GetGUID()))
+                DoneTotalMod *= ((*i)->GetAmount() + 100.0f) / 100.0f;
+            break;
+        }
+
         }
     }
 
@@ -8906,6 +8945,22 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
                     if (victim->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_PRIEST, 0x100000, 0, 0, GetGUID()))
                         AddPct(DoneTotalMod, aurEff->GetAmount());
             }
+
+			// Mind Flay
+			if (spellProto->SpellFamilyFlags[0] & 0x800000)
+			{
+				// Glyph of Shadow Word: Pain
+				if (AuraEffect * aurEff = GetAuraEffect(55687, 0))
+					// Increase Mind Flay damage if Shadow Word: Pain present on target
+					if (victim->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_PRIEST, 0x8000, 0, 0, GetGUID()))
+						DoneTotalMod *= (aurEff->GetAmount() + 100.0f) / 100.f;
+
+				// Twisted Faith - Mind Flay part
+				if (AuraEffect * aurEff = GetAuraEffect(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS, SPELLFAMILY_PRIEST, 2848, 1))
+					// Increase Mind Flay damage if Shadow Word: Pain present on target
+					if (victim->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_PRIEST, 0x8000, 0, 0, GetGUID()))
+						DoneTotalMod *= (aurEff->GetAmount() + 100.0f) / 100.f;
+			}
             break;
         case SPELLFAMILY_WARLOCK:
             // Fire and Brimstone
