@@ -3944,6 +3944,34 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
         {
             break;
         }
+		case SPELLFAMILY_PRIEST:
+		{
+			if (m_spellInfo->Id == 87151)
+			{
+				if (m_caster->HasAura(81661) || m_caster->HasAura(87118))
+				{
+					if (Aura* evangelism = m_caster->GetAura(81661))
+					{
+						int32 bp = 1 * evangelism->GetStackAmount();
+						m_caster->CastCustomSpell(m_caster, 87152, &bp, NULL, NULL, true, 0, 0, m_caster->GetGUID());
+						bp = 3 * evangelism->GetStackAmount();
+						m_caster->CastCustomSpell(m_caster, 81700, &bp, NULL, NULL, true, 0, 0, m_caster->GetGUID());
+						m_caster->RemoveAurasDueToSpell(81661);
+					}
+					else if (Aura* darkEvangelism = m_caster->GetAura(87118))          // dark
+					{
+						int32 bp = 5 * darkEvangelism->GetStackAmount();
+						m_caster->CastCustomSpell(m_caster, 87152, &bp, NULL, NULL, true, 0, 0, m_caster->GetGUID());
+						bp = 4 * darkEvangelism->GetStackAmount();
+						m_caster->CastCustomSpell(m_caster, 87153, &bp, &bp, NULL, true, 0, 0, m_caster->GetGUID());
+						m_caster->RemoveAurasDueToSpell(87118);
+					}
+					m_caster->RemoveAurasDueToSpell(87154);
+				}
+			}
+
+			break;
+		}
         case SPELLFAMILY_DEATHKNIGHT:
         {
             // Pestilence
