@@ -436,6 +436,97 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                         }
                     }
                 }
+
+					// Evangelism Rank 1
+				if (m_caster->HasAura(81659))
+				{
+					// Smite | Holy Fire
+					if (m_spellInfo->Id == 585 || m_spellInfo->Id == 14914)
+					{
+						m_caster->CastSpell(m_caster, 81660, true);
+						m_caster->AddAura(87154, m_caster);
+					}
+				}
+
+				// Evangelism Rank 2
+				if (m_caster->HasAura(81662))
+				{
+					// Smite | Holy Fire
+					if (m_spellInfo->Id == 585 || m_spellInfo->Id == 14914)
+					{
+						m_caster->CastSpell(m_caster, 81661, true);
+						m_caster->AddAura(87154, m_caster);
+					}
+				}
+
+
+				switch(m_spellInfo->Id)
+				{
+					/*
+					  //Shadow Word: Pain || mind flay
+					case 589:
+					case 15407:
+					{
+						if (m_caster->ToPlayer()->GetTalentBranchSpec(m_caster->ToPlayer()->GetActiveSpec()) == BS_PRIEST_SHADOW)         // Shadow Orbs
+						{
+							int chance = 10;
+							if (m_caster->HasAura(33191))
+								chance += 4;
+							else if (m_caster->HasAura(78228))
+								chance += 8;
+
+							if (roll_chance_i(chance))
+								m_caster->CastSpell(m_caster, 77487, true);
+						}
+						break;
+					}*/
+
+					     // Mind Blast
+					case 8092:
+						// Improved Mind Blast
+						if (m_caster->GetShapeshiftForm() == FORM_SHADOW)
+						{
+							Unit::AuraEffectList const& ImprMindBlast = m_caster->GetAuraEffectsByType(SPELL_AURA_ADD_FLAT_MODIFIER);
+							for (Unit::AuraEffectList::const_iterator i = ImprMindBlast.begin(); i != ImprMindBlast.end(); ++i)
+							{
+								if ((*i)->GetSpellInfo()->SpellFamilyName == SPELLFAMILY_PRIEST && ((*i)->GetSpellInfo()->SpellIconID == 95))
+								{
+									int chance = (*i)->GetSpellInfo()->Effects[1].CalcValue(m_caster);
+									// Mind Trauma
+									if (roll_chance_i(chance))
+										m_caster->CastSpell(unitTarget, 48301, true, 0);
+								}
+							}
+						}
+
+						uint32 pct = 0;
+
+						// Shadow orbs
+						if (m_caster->HasAura(77487))
+						{
+							uint8 stack = m_caster->GetAura(77487)->GetStackAmount();
+							pct = stack * 10;
+
+							/*
+							// Mastery
+							if (m_caster->HasAuraType(SPELL_AURA_MASTERY)){
+								if (m_caster->ToPlayer()->GetTalentBranchSpec(m_caster->ToPlayer()->GetActiveSpec()) == BS_PRIEST_SHADOW)
+									pct += 1.5f * m_caster->ToPlayer()->GetMasteryPoints();*/
+						 }
+							AddPct(damage, pct);
+							m_caster->RemoveAurasDueToSpell(77487);
+							m_caster->CastSpell(m_caster, 95799, true);	//Give "Empowered Shadow" - ID:95799
+						}
+
+						//Mind Melt Aura remove
+						m_caster->RemoveAurasDueToSpell(87160);
+						m_caster->RemoveAurasDueToSpell(81292);
+						break;
+
+					default:
+						break;
+				}
+
                 break;
             }
             case SPELLFAMILY_DRUID:
