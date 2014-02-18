@@ -2365,11 +2365,9 @@ public:
     struct npc_shadowfiendAI: public ScriptedAI
     {
         npc_shadowfiendAI (Creature* pCreature) :
-                ScriptedAI(pCreature)
-        {
-        }
+                ScriptedAI(pCreature) { }
 
-        void Reset ()
+        void Reset () OVERRIDE
         {
             if (me->IsSummon())
                 if (Unit* pOwner = me->ToTempSummon()->GetSummoner())
@@ -2377,7 +2375,7 @@ public:
                         pet->CastSpell(pet, MANA_LEECH, true);
         }
 
-        void DamageTaken (Unit* /*pKiller*/, uint32 &damage)
+        void DamageTaken (Unit* /*pKiller*/, uint32 &damage) OVERRIDE
         {
             if (me->IsSummon())
                 if (Unit* pOwner = me->ToTempSummon()->GetSummoner())
@@ -2388,7 +2386,7 @@ public:
                 }
         }
 
-		void DamageDealt (Unit* /*victim*/, uint32& /*damage*/, DamageEffectType /*damageType*/) 
+		void DamageDealt (Unit* /*victim*/, uint32& /*damage*/, DamageEffectType /*damageType*/) OVERRIDE
 		{
 			if(me->IsSummon())
 			{
@@ -2399,13 +2397,13 @@ public:
 			}
 		}
 
-        void UpdateAI (const uint32 /*diff*/)
+        void UpdateAI(uint32 diff) OVERRIDE
         {
             DoMeleeAttackIfReady();
         }
     };
 
-    CreatureAI *GetAI (Creature *creature) const
+    CreatureAI *GetAI (Creature *creature) const OVERRIDE
     {
         return new npc_shadowfiendAI(creature);
     }
@@ -2431,14 +2429,14 @@ public:
         bool checker;
         uint32 cron;          // Duration
 
-        void Reset ()
+        void Reset () OVERRIDE
         {
             checker = false;
             cron = 10000;
             DoCast(me, 81781);
         }
 
-        void InitializeAI ()
+        void InitializeAI () OVERRIDE
         {
             ScriptedAI::InitializeAI();
             Unit * owner = me->GetOwner();
@@ -2452,18 +2450,21 @@ public:
 
         void BarrierChecker (Unit *who)
         {
-            if (who->isAlive() && !who->HasAura(81782))
+            if (who->IsAlive() && !who->HasAura(81782))
             {
                 me->CastSpell(who, 81782, true);
             }
-            if (who->isAlive() && who->HasAura(81782))
+            if (who->IsAlive() && who->HasAura(81782))
             {
                 if (AuraEffect const* aur = who->GetAuraEffect(81782, 0))
-                    aur->GetBase()->SetDuration(GetSpellMaxDuration(aur->GetSpellProto()), true);
+				{
+					int32 maxduration = aur->GetBase()->GetMaxDuration();
+                    aur->GetBase()->SetDuration(maxduration);
+				}
             }
         }
 
-        void UpdateAI (const uint32 diff)
+        void UpdateAI (uint32 diff) OVERRIDE
         {
             if (cron <= diff)
             {
@@ -2489,7 +2490,7 @@ public:
         }
     };
 
-    CreatureAI* GetAI (Creature* pCreature) const
+    CreatureAI* GetAI (Creature* pCreature) const OVERRIDE
     {
         return new npc_power_word_barrierAI(pCreature);
     }
