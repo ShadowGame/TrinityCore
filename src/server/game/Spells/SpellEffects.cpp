@@ -483,6 +483,7 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
 
 					     // Mind Blast
 					case 8092:
+					{
 						// Improved Mind Blast
 						if (m_caster->GetShapeshiftForm() == FORM_SHADOW)
 						{
@@ -516,13 +517,12 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
 							AddPct(damage, pct);
 							m_caster->RemoveAurasDueToSpell(77487);
 							m_caster->CastSpell(m_caster, 95799, true);	//Give "Empowered Shadow" - ID:95799
-						}
 
 						//Mind Melt Aura remove
 						m_caster->RemoveAurasDueToSpell(87160);
 						m_caster->RemoveAurasDueToSpell(81292);
 						break;
-
+					}
 					default:
 						break;
 				}
